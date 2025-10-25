@@ -1,18 +1,29 @@
-# Use official Java 17 image
-FROM eclipse-temurin:17-jdk
+# ---- Build Stage ----
+FROM eclipse-temurin:17-jdk AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy all files to container
-COPY . .
+# Copy Maven wrapper & pom.xml first for dependency caching
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
 
-# Give Maven wrapper permission and build
 RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source and build the project
+COPY src src
 RUN ./mvnw -q -DskipTests package
 
-# Expose port 8080
+# ---- Run Stage ----
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# Copy the built jar from the builder stage
+COPY --from=builder /app/target/games-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 
-# Start the Spring Boot app
-CMD ["java", "-jar", "/target/games-0.0.1-SNAPSHOT.jar"]
+# Run the jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
