@@ -15,4 +15,4 @@ RUN ./mvnw -q -DskipTests package
 EXPOSE 8080
 
 # Start the Spring Boot app
-CMD ["java", "-jar", "/app/target/*.jar"]
+CMD ["java", "-jar", "/app/target/games-0.0.1-SNAPSHOT.jar"]
